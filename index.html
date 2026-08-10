@@ -14,9 +14,12 @@
 <body>
   <header class="site-header">
     <a class="brand" href="/" aria-label="A Retrospektual View home">
-      <span class="brand-mark">ARV</span>
-      <span class="brand-name">A Retrospektual View</span>
-    </a>
+  <img
+    src="assets/logos/arv-logo.png"
+    alt="A Retrospektual View"
+    class="brand-logo"
+  >
+</a>
 
     <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false">
       <span></span><span></span><span></span>
@@ -89,16 +92,45 @@
           </div>
         </a>
 
-        <a class="division-card film-card" href="film/">
-          <div class="card-overlay"></div>
-          <div class="card-content">
-            <p class="card-kicker">Visual Production</p>
-            <h3>Joe<br>FilmedIT</h3>
-            <p class="card-services">Music Videos · Content · Visuals</p>
-            <span class="card-link">View film services <span>↗</span></span>
-          </div>
-        </a>
-      </div>
+        <<div class="division-grid">
+  <a class="division-card studio-card" href="studio/">
+    <div class="card-overlay"></div>
+
+    <div class="card-content">
+      <p class="card-kicker">Audio Production</p>
+
+      <img
+        src="assets/logos/joes-house-logo.png"
+        alt="Joe's House Music Studio"
+        class="division-logo studio-logo"
+      >
+
+      <p class="card-services">Recording · Mixing · Mastering</p>
+      <span class="card-link">
+        Enter the studio <span>↗</span>
+      </span>
+    </div>
+  </a>
+
+  <a class="division-card film-card" href="film/">
+    <div class="card-overlay"></div>
+
+    <div class="card-content">
+      <p class="card-kicker">Visual Production</p>
+
+      <img
+        src="assets/logos/joe-filmedit-logo.png"
+        alt="Joe FilmedIT"
+        class="division-logo film-logo"
+      >
+
+      <p class="card-services">Music Videos · Content · Visuals</p>
+      <span class="card-link">
+        View film services <span>↗</span>
+      </span>
+    </div>
+  </a>
+</div>
     </section>
 
     <section class="statement section">
