@@ -10,7 +10,7 @@
   --text: #f4f1ea;
   --muted: #aaa59d;
   --line: rgba(255,255,255,.12);
-  --accent: #e0b35a;
+  --accent: #b31318;
   --max: 1280px;
 }
 
@@ -67,6 +67,14 @@ img {
   gap: 14px;
   align-items: center;
   font-weight: 700;
+}
+
+.brand-logo {
+  display: block;
+  width: 150px;
+  height: auto;
+  max-height: 58px;
+  object-fit: contain;
 }
 
 .brand-mark {
@@ -307,14 +315,18 @@ h3 {
 
 .studio-card {
   background-image:
-    linear-gradient(150deg, rgba(0,0,0,.15), rgba(0,0,0,.75)),
-    radial-gradient(circle at 70% 30%, #513e1f, #111 50%, #080808);
+    linear-gradient(150deg, rgba(0,0,0,.18), rgba(0,0,0,.82)),
+    url("../assets/images/studio/studio-hero.jpeg");
+  background-position: center;
+  background-size: cover;
 }
 
 .film-card {
   background-image:
-    linear-gradient(150deg, rgba(0,0,0,.12), rgba(0,0,0,.82)),
-    radial-gradient(circle at 55% 35%, #27314a, #131313 48%, #080808);
+    linear-gradient(150deg, rgba(0,0,0,.16), rgba(0,0,0,.84)),
+    url("../assets/images/film/film-hero.jpeg");
+  background-position: center;
+  background-size: cover;
 }
 
 .division-card::before {
@@ -346,6 +358,23 @@ h3 {
   position: relative;
   z-index: 2;
   transition: transform .35s ease;
+}
+
+.division-logo {
+  display: block;
+  width: min(360px, 82%);
+  height: auto;
+  object-fit: contain;
+  margin: 0 0 1.6rem;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,.45));
+}
+
+.studio-logo {
+  max-width: 340px;
+}
+
+.film-logo {
+  max-width: 320px;
 }
 
 .division-card:hover .card-content {
@@ -504,6 +533,14 @@ footer .brand-name {
   .brand-name {
     font-size: .67rem;
   }
+
+   .brand-logo {
+  width: 118px;
+}
+
+.division-logo {
+  width: 78%;
+}
 
   .hero h1 {
     font-size: clamp(3.2rem, 19vw, 5rem);
