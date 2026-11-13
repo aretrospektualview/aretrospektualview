@@ -135,10 +135,20 @@
 <main id="main">
 
   <section class="hero hero--video" id="top">
-    <video class="hero__video" autoplay muted loop playsinline preload="metadata"
-      poster="/assets/img/home-hero-poster.jpg" aria-label="Studio, video shoot, and DJ footage from A Retrospektual View">
-      <source src="/assets/video/home-hero.mp4" type="video/mp4">
-    </video>
+    <video class="hero__video" id="home-video" muted loop playsinline preload="none"
+      aria-label="Studio, video shoot, and DJ footage from A Retrospektual View"></video>
+    <script>
+      (function () {
+        var v = document.getElementById('home-video');
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        var small = window.matchMedia('(max-width: 700px)').matches;
+        var name = small ? 'home-hero-mobile' : 'home-hero';
+        v.poster = '/assets/img/' + name + '-poster.jpg';
+        v.muted = true;
+        v.src = '/assets/video/' + name + '.mp4';
+        var p = v.play(); if (p && p.catch) p.catch(function () {});
+      })();
+    </script>
     <div class="hero__shade" style="--poster: url('/assets/img/home-hero-poster.jpg')"></div>
     <img class="hero__mark" src="/assets/img/arv-logo.png" alt="A Retrospektual View" width="640" height="403">
     <h1 class="hero__title">Recording studio, video, photography, and live event production in Rosharon, Texas</h1>
@@ -273,6 +283,11 @@
   </p>
 </footer>
 
+<script>
+  document.querySelectorAll('.page-head__video').forEach(function (v) {
+    v.muted = true; var p = v.play(); if (p && p.catch) p.catch(function () {});
+  });
+</script>
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>

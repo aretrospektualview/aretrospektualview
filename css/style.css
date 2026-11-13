@@ -822,3 +822,15 @@ body.has-cart { padding-bottom: 5.5rem; }
 .reviews__qr img { width: 176px; height: 176px; border: 6px solid var(--cream); border-radius: 2px; margin: 0 auto .6rem; }
 .reviews__qr figcaption { color: var(--cream-dim); font-size: .875rem; max-width: 22ch; margin: 0 auto; }
 @media (max-width: 859px) { .reviews__qr { display: none; } }
+
+/* shop: larger cards and a solid Add button on every screen */
+@media (min-width: 900px) {
+  .shop__grid, .shirts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+  .shirt { padding: 1rem 1rem 1.25rem; }
+  .shirt__name { font-size: 1.1875rem; }
+  .shirt__price { font-size: 1.0625rem; }
+  .shirt__size, .shirt__add { font-size: 1rem; padding-block: .7rem; }
+}
+.shirt__add, .shirt__add:hover { background: var(--red); border-color: var(--red); color: #fff; padding-inline: 1.4rem; }
+.shirt__add:hover { background: var(--red-soft); border-color: var(--red-soft); }
+.shirt__size { border-color: #5a544c; }

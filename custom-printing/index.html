@@ -276,6 +276,11 @@
   </p>
 </footer>
 
+<script>
+  document.querySelectorAll('.page-head__video').forEach(function (v) {
+    v.muted = true; var p = v.play(); if (p && p.catch) p.catch(function () {});
+  });
+</script>
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
