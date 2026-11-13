@@ -1,0 +1,7 @@
+/film      /video/   301
+/film/     /video/   301
+/film/*    /video/   301
+/events    /dj/      301
+/events/   /dj/      301
+/shotbykdon   /photography/  301
+/kdon         /photography/  301

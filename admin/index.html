@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Orders — A Retrospektual View</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#0E0D0C; --panel:#171513; --panel-2:#1F1C19;
+    --cream:#EFE9DD; --dim:#A9A196; --gold:#C9A227; --gold-soft:#E0BC4A;
+    --red:#C1272D; --rule:#2E2A26; --green:#4C9A5E;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--ink); color:var(--cream);
+    font-family:Archivo,"Helvetica Neue",Arial,sans-serif;
+    font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  header {
+    padding:1rem clamp(1rem,4vw,2.5rem);
+    border-bottom:1px solid var(--rule);
+    display:flex; justify-content:space-between; align-items:center; gap:1rem;
+  }
+  header h1 { font-size:1.125rem; margin:0; letter-spacing:-.01em; }
+  header a { color:var(--dim); font-size:.875rem; }
+  main { padding:clamp(1.25rem,4vw,2.5rem); max-width:62rem; margin:0 auto; }
+
+  .gate { max-width:22rem; }
+  .gate p { color:var(--dim); }
+  input, select {
+    width:100%; background:var(--panel-2); color:var(--cream);
+    border:1px solid var(--rule); border-radius:2px;
+    padding:.6rem .7rem; font:inherit;
+  }
+  input:focus, select:focus { outline:2px solid var(--gold-soft); outline-offset:1px; }
+  label { display:block; font-size:.8125rem; color:var(--dim); margin:0 0 .25rem; }
+
+  button {
+    background:var(--red); color:#fff; border:1px solid var(--red);
+    border-radius:2px; padding:.6rem 1.1rem; font:inherit; font-weight:600;
+    cursor:pointer;
+  }
+  button.ghost { background:none; border-color:var(--rule); color:var(--cream); }
+  button.ghost:hover { border-color:var(--gold); color:var(--gold-soft); }
+  button:disabled { opacity:.5; cursor:default; }
+
+  .msg { padding:.75rem 1rem; border-left:3px solid var(--gold); background:var(--panel); margin:0 0 1.25rem; }
+  .msg.bad { border-left-color:var(--red); }
+  .msg.good { border-left-color:var(--green); }
+
+  .bar { display:flex; gap:.75rem; align-items:center; margin:0 0 1.5rem; flex-wrap:wrap; }
+  .bar .count { color:var(--dim); font-size:.875rem; }
+
+  .order {
+    background:var(--panel); border:1px solid var(--rule);
+    margin:0 0 1rem; padding:1.1rem;
+  }
+  .order.done { opacity:.62; }
+  .order__top {
+    display:flex; justify-content:space-between; gap:1rem;
+    flex-wrap:wrap; align-items:baseline; margin-bottom:.75rem;
+  }
+  .order__who { font-weight:700; }
+  .order__when { color:var(--dim); font-size:.8125rem; }
+  .order__total { color:var(--gold-soft); font-weight:700; font-variant-numeric:tabular-nums; }
+  .tag {
+    display:inline-block; font-size:.6875rem; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase;
+    padding:.15rem .45rem; border-radius:2px; margin-left:.4rem;
+  }
+  .tag--pickup { background:var(--gold); color:var(--ink); }
+  .tag--shipped { background:var(--green); color:#fff; }
+
+  .cols { display:grid; gap:1rem; grid-template-columns:1fr; }
+  @media (min-width:680px) { .cols { grid-template-columns:1.1fr 1fr; } }
+  .cols h3 { font-size:.75rem; text-transform:uppercase; letter-spacing:.07em;
+             color:var(--dim); margin:0 0 .35rem; font-weight:600; }
+  .items { margin:0; padding:0; list-style:none; }
+  .items li { padding:.15rem 0; }
+  address { font-style:normal; color:var(--cream); }
+  .muted { color:var(--dim); }
+
+  .ship { margin-top:1rem; padding-top:1rem; border-top:1px solid var(--rule); }
+  .ship__row { display:grid; gap:.6rem; grid-template-columns:1fr; }
+  @media (min-width:560px) { .ship__row { grid-template-columns:9rem 1fr auto; align-items:end; } }
+  .ship__done { color:var(--dim); font-size:.9375rem; }
+  .ship__done a { color:var(--gold-soft); }
+  .skip { position:absolute; left:-9999px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Orders</h1>
+  <a href="/">← back to site</a>
+</header>
+
+<main>
+  <div id="gate" class="gate">
+    <div id="gate-msg" class="msg" hidden></div>
+    <label for="pw">Admin password</label>
+    <input id="pw" type="password" autocomplete="current-password">
+    <p><button id="go">Sign in</button></p>
+  </div>
+
+  <div id="app" hidden>
+    <div id="msg" class="msg" hidden></div>
+    <div class="bar">
+      <button class="ghost" id="refresh">Refresh</button>
+      <label style="display:flex;align-items:center;gap:.4rem;margin:0;color:var(--cream);font-size:.875rem">
+        <input type="checkbox" id="only-open" style="width:auto" checked> To ship only
+      </label>
+      <span class="count" id="count"></span>
+    </div>
+    <div id="list"></div>
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var KEY = 'arv-admin-key';
+  var key = '';
+  try { key = sessionStorage.getItem(KEY) || ''; } catch (e) {}
+
+  var gate = document.getElementById('gate');
+  var gateMsg = document.getElementById('gate-msg');
+  var app = document.getElementById('app');
+  var list = document.getElementById('list');
+  var msg = document.getElementById('msg');
+  var count = document.getElementById('count');
+  var onlyOpen = document.getElementById('only-open');
+
+  var CARRIERS = [
+    ['usps', 'USPS'], ['ups', 'UPS'], ['fedex', 'FedEx'],
+    ['dhl', 'DHL'], ['other', 'Other'],
+  ];
+  var TRACK = {
+    USPS:   function (n) { return 'https://tools.usps.com/go/TrackConfirmAction?tLabels=' + n; },
+    UPS:    function (n) { return 'https://www.ups.com/track?tracknum=' + n; },
+    FedEx:  function (n) { return 'https://www.fedex.com/fedextrack/?trknbr=' + n; },
+    DHL:    function (n) { return 'https://www.dhl.com/us-en/home/tracking.html?tracking-id=' + n; },
+  };
+
+  function say(el, text, kind) {
+    el.textContent = text;
+    el.className = 'msg' + (kind ? ' ' + kind : '');
+    el.hidden = false;
+  }
+  function money(c) { return '$' + (c / 100).toFixed(2); }
+  function when(ts) {
+    var d = new Date(ts * 1000);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
+           ' ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function api(method, body) {
+    return fetch('/api/orders', {
+      method: method,
+      headers: Object.assign({ 'x-admin-key': key },
+        body ? { 'content-type': 'application/json' } : {}),
+      body: body ? JSON.stringify(body) : undefined,
+    }).then(function (r) {
+      return r.json().then(function (d) { return { ok: r.ok, status: r.status, d: d }; });
+    });
+  }
+
+  /* ---------------------------------------------------------- sign in */
+
+  function signIn() {
+    var pw = document.getElementById('pw').value;
+    if (!pw) return;
+    key = pw;
+    api('GET').then(function (res) {
+      if (res.status === 401) { say(gateMsg, 'That password did not work.', 'bad'); key = ''; return; }
+      if (!res.ok) { say(gateMsg, res.d.error || 'Could not load orders.', 'bad'); key = ''; return; }
+      try { sessionStorage.setItem(KEY, key); } catch (e) {}
+      gate.hidden = true; app.hidden = false;
+      render(res.d.orders || []);
+    }).catch(function () { say(gateMsg, 'Could not reach the server.', 'bad'); });
+  }
+  document.getElementById('go').addEventListener('click', signIn);
+  document.getElementById('pw').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') signIn();
+  });
+
+  /* ------------------------------------------------------------ load */
+
+  function load() {
+    api('GET').then(function (res) {
+      if (res.status === 401) {
+        key = ''; try { sessionStorage.removeItem(KEY); } catch (e) {}
+        app.hidden = true; gate.hidden = false;
+        say(gateMsg, 'Session expired. Sign in again.', 'bad');
+        return;
+      }
+      if (!res.ok) { say(msg, res.d.error || 'Could not load orders.', 'bad'); return; }
+      msg.hidden = true;
+      render(res.d.orders || []);
+    }).catch(function () { say(msg, 'Could not reach the server.', 'bad'); });
+  }
+  document.getElementById('refresh').addEventListener('click', load);
+  onlyOpen.addEventListener('change', function () { render(window.__orders || []); });
+
+  /* ---------------------------------------------------------- render */
+
+  function render(orders) {
+    window.__orders = orders;
+    var shown = onlyOpen.checked ? orders.filter(function (o) { return !o.shipped_at; }) : orders;
+
+    count.textContent = shown.length + ' of ' + orders.length + ' shown';
+    list.innerHTML = '';
+
+    if (!shown.length) {
+      var p = document.createElement('p');
+      p.className = 'muted';
+      p.textContent = onlyOpen.checked
+        ? 'Nothing waiting to ship. Nice.'
+        : 'No orders yet.';
+      list.appendChild(p);
+      return;
+    }
+
+    shown.forEach(function (o) { list.appendChild(card(o)); });
+  }
+
+  function card(o) {
+    var el = document.createElement('div');
+    el.className = 'order' + (o.shipped_at ? ' done' : '');
+
+    var top = document.createElement('div');
+    top.className = 'order__top';
+    var left = document.createElement('div');
+    var who = document.createElement('span');
+    who.className = 'order__who';
+    who.textContent = o.customer.name || o.customer.email || 'Customer';
+    left.appendChild(who);
+    if (o.pickup) left.appendChild(tag('PICKUP', 'tag--pickup'));
+    if (o.shipped_at) left.appendChild(tag('SHIPPED', 'tag--shipped'));
+    var wh = document.createElement('div');
+    wh.className = 'order__when';
+    wh.textContent = when(o.created);
+    left.appendChild(wh);
+
+    var tot = document.createElement('span');
+    tot.className = 'order__total';
+    tot.textContent = money(o.total);
+
+    top.appendChild(left); top.appendChild(tot);
+    el.appendChild(top);
+
+    var cols = document.createElement('div');
+    cols.className = 'cols';
+
+    var c1 = document.createElement('div');
+    c1.innerHTML = '<h3>Items</h3>';
+    var ul = document.createElement('ul');
+    ul.className = 'items';
+    o.items.forEach(function (i) {
+      var li = document.createElement('li');
+      li.textContent = i.qty + ' x ' + i.name;
+      ul.appendChild(li);
+    });
+    c1.appendChild(ul);
+
+    var c2 = document.createElement('div');
+    c2.innerHTML = '<h3>' + (o.pickup ? 'Pickup — contact' : 'Ship to') + '</h3>';
+    var ad = document.createElement('address');
+    var lines = [];
+    if (!o.pickup && o.address) {
+      lines = [o.customer.name, o.address.line1, o.address.line2,
+        [o.address.city, o.address.state, o.address.postal_code].filter(Boolean).join(', ')];
+    } else {
+      lines = [o.customer.name];
+    }
+    lines.concat([o.customer.email, o.customer.phone]).filter(Boolean).forEach(function (l) {
+      var d = document.createElement('div'); d.textContent = l; ad.appendChild(d);
+    });
+    c2.appendChild(ad);
+
+    cols.appendChild(c1); cols.appendChild(c2);
+    el.appendChild(cols);
+
+    el.appendChild(o.shipped_at ? shippedBlock(o) : shipForm(o));
+    return el;
+  }
+
+  function tag(text, cls) {
+    var s = document.createElement('span');
+    s.className = 'tag ' + cls; s.textContent = text;
+    return s;
+  }
+
+  function shippedBlock(o) {
+    var d = document.createElement('div');
+    d.className = 'ship ship__done';
+    var url = TRACK[o.carrier] ? TRACK[o.carrier](encodeURIComponent(o.tracking_number)) : '';
+    d.innerHTML = 'Shipped ' + new Date(o.shipped_at).toLocaleDateString() +
+      ' &middot; ' + (o.carrier || '') + ' ' +
+      (url ? '<a href="' + url + '" target="_blank" rel="noopener">' + o.tracking_number + '</a>'
+           : o.tracking_number);
+    return d;
+  }
+
+  function shipForm(o) {
+    var wrap = document.createElement('div');
+    wrap.className = 'ship';
+
+    if (o.pickup) {
+      var note = document.createElement('p');
+      note.className = 'muted';
+      note.style.margin = '0 0 .6rem';
+      note.textContent = 'Pickup order — only mark this shipped if you end up mailing it.';
+      wrap.appendChild(note);
+    }
+
+    var row = document.createElement('div');
+    row.className = 'ship__row';
+
+    var carWrap = document.createElement('div');
+    carWrap.innerHTML = '<label>Carrier</label>';
+    var car = document.createElement('select');
+    CARRIERS.forEach(function (c) {
+      var op = document.createElement('option');
+      op.value = c[0]; op.textContent = c[1];
+      car.appendChild(op);
+    });
+    carWrap.appendChild(car);
+
+    var numWrap = document.createElement('div');
+    numWrap.innerHTML = '<label>Tracking number</label>';
+    var num = document.createElement('input');
+    num.type = 'text';
+    num.placeholder = 'Paste the tracking number';
+    numWrap.appendChild(num);
+
+    var btn = document.createElement('button');
+    btn.textContent = 'Mark shipped';
+
+    row.appendChild(carWrap); row.appendChild(numWrap); row.appendChild(btn);
+    wrap.appendChild(row);
+
+    var out = document.createElement('p');
+    out.className = 'muted';
+    out.style.margin = '.6rem 0 0';
+    out.style.fontSize = '.875rem';
+    out.textContent = o.customer.email
+      ? 'Saves tracking to Stripe and emails ' + o.customer.email + '.'
+      : 'No email on this order, so nothing will be sent.';
+    wrap.appendChild(out);
+
+    btn.addEventListener('click', function () {
+      if (!num.value.trim()) { out.textContent = 'Enter a tracking number first.'; return; }
+      btn.disabled = true; btn.textContent = 'Saving…';
+      api('POST', {
+        payment_intent: o.payment_intent,
+        carrier: car.value,
+        tracking_number: num.value.trim(),
+        email: o.customer.email,
+      }).then(function (res) {
+        if (!res.ok) throw new Error(res.d.error || 'Could not save.');
+        out.textContent = res.d.emailed
+          ? 'Saved, and the customer was emailed.'
+          : 'Saved to Stripe. The email did not send — check RESEND_API_KEY.';
+        setTimeout(load, 900);
+      }).catch(function (e) {
+        out.textContent = e.message;
+        btn.disabled = false; btn.textContent = 'Mark shipped';
+      });
+    });
+
+    return wrap;
+  }
+
+  /* --------------------------------------------------------- start up */
+
+  if (key) {
+    gate.hidden = true; app.hidden = false;
+    load();
+  }
+})();
+</script>
+</body>
+</html>
