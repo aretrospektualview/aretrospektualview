@@ -181,6 +181,21 @@ async function sendMail(env, { to, subject, text, html }) {
   return r.ok;
 }
 
+
+/* Shipping vs. pickup. Decided by the name of the option the customer picked
+   (expanded from Stripe), then by the amount charged. Missing data never
+   counts as pickup, so a shipped order can't be mislabeled. */
+function shippingInfo(s) {
+  const sc = s.shipping_cost || null;
+  const rate = sc && sc.shipping_rate && typeof sc.shipping_rate === 'object' ? sc.shipping_rate : null;
+  let cost;
+  if (sc && Number.isFinite(sc.amount_total)) cost = sc.amount_total;
+  else if (s.total_details && Number.isFinite(s.total_details.amount_shipping)) cost = s.total_details.amount_shipping;
+  else cost = Math.max(0, (s.amount_total || 0) - (s.amount_subtotal || 0));
+  const pickup = rate && rate.display_name ? /pickup/i.test(rate.display_name) : cost === 0 && !!sc;
+  return { cost, pickup };
+}
+
 /* -------------------------------------------------------------------- POST */
 
 export async function onRequestPost({ request, env }) {
@@ -205,7 +220,7 @@ export async function onRequestPost({ request, env }) {
   let s;
   try {
     const r = await fetch(
-      `https://api.stripe.com/v1/checkout/sessions/${sessionId}?expand[]=line_items&expand[]=line_items.data.price.product`,
+      `https://api.stripe.com/v1/checkout/sessions/${sessionId}?expand[]=line_items&expand[]=line_items.data.price.product&expand[]=shipping_cost.shipping_rate`,
       { headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}` } }
     );
     s = await r.json();
@@ -225,10 +240,10 @@ export async function onRequestPost({ request, env }) {
     .map(li => `  ${li.quantity} x ${li.description}   ${money(li.amount_total)}`)
     .join('\n');
 
-  const shippingLine =
-    s.shipping_cost && s.shipping_cost.amount_total === 0
-      ? 'LOCAL PICKUP — do not ship'
-      : `Shipping: ${money((s.shipping_cost && s.shipping_cost.amount_total) || 0)}`;
+  const shipInfo = shippingInfo(s);
+  const shippingLine = shipInfo.pickup
+    ? 'LOCAL PICKUP — do not ship'
+    : `Shipping: ${money(shipInfo.cost)}`;
 
   const number = orderNumber(s.payment_intent);
 
@@ -261,8 +276,7 @@ export async function onRequestPost({ request, env }) {
   /* ------------------------------------------- customer confirmation email */
   if (cust.email) {
     const lineItems = (s.line_items && s.line_items.data) || [];
-    const shipCost = (s.shipping_cost && s.shipping_cost.amount_total) || 0;
-    const pickup = shipCost === 0;
+    const { cost: shipCost, pickup } = shipInfo;
     const a = ship && ship.address;
     const shipTo = !pickup && a
       ? [

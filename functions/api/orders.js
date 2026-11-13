@@ -94,6 +94,21 @@ async function sendMail(env, { to, subject, text }) {
 
 const orderNumber = pi => (pi ? 'ARV-' + String(pi).slice(-8).toUpperCase() : '');
 
+
+/* Shipping vs. pickup. Decided by the name of the option the customer picked
+   (expanded from Stripe), then by the amount charged. Missing data never
+   counts as pickup, so a shipped order can't be mislabeled. */
+function shippingInfo(s) {
+  const sc = s.shipping_cost || null;
+  const rate = sc && sc.shipping_rate && typeof sc.shipping_rate === 'object' ? sc.shipping_rate : null;
+  let cost;
+  if (sc && Number.isFinite(sc.amount_total)) cost = sc.amount_total;
+  else if (s.total_details && Number.isFinite(s.total_details.amount_shipping)) cost = s.total_details.amount_shipping;
+  else cost = Math.max(0, (s.amount_total || 0) - (s.amount_subtotal || 0));
+  const pickup = rate && rate.display_name ? /pickup/i.test(rate.display_name) : cost === 0 && !!sc;
+  return { cost, pickup };
+}
+
 export async function onRequestGet({ request, env }) {
   if (!authed(request, env)) return json({ error: 'Not authorised.' }, 401);
   if (!env.STRIPE_SECRET_KEY) return json({ error: 'Stripe key not set.' }, 503);
@@ -102,7 +117,7 @@ export async function onRequestGet({ request, env }) {
   try {
     data = await stripe(
       env,
-      'checkout/sessions?limit=40&expand[]=data.line_items&expand[]=data.payment_intent'
+      'checkout/sessions?limit=40&expand[]=data.line_items&expand[]=data.payment_intent&expand[]=data.shipping_cost.shipping_rate'
     );
   } catch (e) {
     return json({ error: e.message }, 502);
@@ -118,7 +133,7 @@ export async function onRequestGet({ request, env }) {
         (s.collected_information && s.collected_information.shipping_details) ||
         s.shipping_details ||
         null;
-      const pickup = !!(s.shipping_cost && s.shipping_cost.amount_total === 0);
+      const { cost: shipCost, pickup } = shippingInfo(s);
 
       return {
         id: s.id,
@@ -127,7 +142,7 @@ export async function onRequestGet({ request, env }) {
         created: s.created,
         total: s.amount_total,
         pickup,
-        shipping_cost: (s.shipping_cost && s.shipping_cost.amount_total) || 0,
+        shipping_cost: shipCost,
         items: ((s.line_items && s.line_items.data) || []).map(li => ({
           qty: li.quantity,
           name: li.description,
