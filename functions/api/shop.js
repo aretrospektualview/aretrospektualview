@@ -169,7 +169,8 @@ export async function onRequestPost({ request, env }) {
   const payload = {
     mode: 'payment',
     line_items,
-    success_url: `${origin}/shop/?order=thanks`,
+    // {CHECKOUT_SESSION_ID} is filled in by Stripe, so the thank-you page can look the order up.
+    success_url: `${origin}/order/?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/shop/?order=cancelled`,
     billing_address_collection: 'required',
     phone_number_collection: { enabled: true },

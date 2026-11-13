@@ -92,6 +92,8 @@ async function sendMail(env, { to, subject, text }) {
 
 /* --------------------------------------------------------------- GET list */
 
+const orderNumber = pi => (pi ? 'ARV-' + String(pi).slice(-8).toUpperCase() : '');
+
 export async function onRequestGet({ request, env }) {
   if (!authed(request, env)) return json({ error: 'Not authorised.' }, 401);
   if (!env.STRIPE_SECRET_KEY) return json({ error: 'Stripe key not set.' }, 503);
@@ -121,6 +123,7 @@ export async function onRequestGet({ request, env }) {
       return {
         id: s.id,
         payment_intent: pi ? pi.id : s.payment_intent || null,
+        order_number: orderNumber(pi ? pi.id : s.payment_intent),
         created: s.created,
         total: s.amount_total,
         pickup,
@@ -208,7 +211,7 @@ export async function onRequestPost({ request, env }) {
   if (notify !== false && to) {
     const link = car.url(encodeURIComponent(num));
     const text = [
-      `Your order has shipped.`,
+      `Your order ${orderNumber(payment_intent)} has shipped.`,
       '',
       `Carrier: ${car.name}`,
       `Tracking number: ${num}`,
@@ -224,7 +227,7 @@ export async function onRequestPost({ request, env }) {
 
     emailed = await sendMail(env, {
       to,
-      subject: 'Your A Retrospektual View order has shipped',
+      subject: `Order ${orderNumber(payment_intent)} has shipped — A Retrospektual View`,
       text,
     });
   }

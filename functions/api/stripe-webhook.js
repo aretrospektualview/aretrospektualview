@@ -3,7 +3,8 @@
    Cloudflare Pages Function.
 
    Stripe calls this the moment an order is paid. It emails you a packing
-   list so you can pull shirts without opening the dashboard.
+   list so you can pull shirts without opening the dashboard, and emails the
+   customer a branded order confirmation with their order number.
 
    Needs these in Cloudflare (Settings -> Variables and Secrets):
      STRIPE_SECRET_KEY        your sk_live_ key            (Secret)
@@ -76,7 +77,86 @@ function addressLines(addr, name) {
   ].filter(Boolean);
 }
 
-async function sendMail(env, { to, subject, text }) {
+const orderNumber = pi => (pi ? 'ARV-' + String(pi).slice(-8).toUpperCase() : '');
+
+const esc = v =>
+  String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const SITE = 'https://aretrospektualview.com';
+
+/* Branded order confirmation. Table layout + inline styles because email apps
+   (Gmail, Outlook, iPhone Mail) ignore most modern CSS. */
+function confirmationHtml({ number, firstName, items, subtotal, shipping, total, pickup, shipTo, email }) {
+  const rows = items.map(it => `
+        <tr>
+          <td style="padding:12px 0;border-bottom:1px solid #E6E0D4;width:72px;vertical-align:top;">
+            ${it.image ? `<img src="${esc(it.image)}" width="60" height="60" alt="" style="display:block;border-radius:4px;background:#ffffff;">` : ''}
+          </td>
+          <td style="padding:12px 12px;border-bottom:1px solid #E6E0D4;font-size:15px;line-height:1.4;color:#1A1714;vertical-align:top;">
+            ${esc(it.name)}<br><span style="color:#7A7268;font-size:13px;">Qty ${it.qty}</span>
+          </td>
+          <td align="right" style="padding:12px 0;border-bottom:1px solid #E6E0D4;font-size:15px;color:#1A1714;vertical-align:top;white-space:nowrap;">
+            ${money(it.amount)}
+          </td>
+        </tr>`).join('');
+
+  const delivery = pickup
+    ? `<p style="margin:0;font-size:15px;line-height:1.5;color:#1A1714;"><strong>Local pickup in Rosharon.</strong><br>We'll text or email you when your order is ready to pick up.</p>`
+    : `<p style="margin:0 0 6px;font-size:13px;color:#7A7268;">Shipping to</p>
+       <p style="margin:0;font-size:15px;line-height:1.5;color:#1A1714;">${shipTo.map(esc).join('<br>')}</p>
+       <p style="margin:10px 0 0;font-size:13px;line-height:1.5;color:#7A7268;">We'll email your tracking number as soon as it ships.</p>`;
+
+  return `<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Order ${esc(number)} confirmed</title></head>
+<body style="margin:0;padding:0;background:#F2EEE6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F2EEE6;">
+  <tr><td align="center" style="padding:24px 12px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:6px;overflow:hidden;">
+      <tr><td align="center" style="background:#0E0D0C;padding:28px 24px 22px;">
+        <a href="${SITE}"><img src="${SITE}/assets/img/email-logo.png" width="180" alt="A Retrospektual View" style="display:block;width:180px;height:auto;border:0;"></a>
+      </td></tr>
+      <tr><td style="height:4px;background:#C1272D;font-size:0;line-height:0;">&nbsp;</td></tr>
+      <tr><td style="padding:32px 28px 8px;">
+        <h1 style="margin:0 0 8px;font-size:24px;line-height:1.25;color:#1A1714;">Thanks${firstName ? ', ' + esc(firstName) : ''}. Your order is in.</h1>
+        <p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:#4A443D;">We've received your payment and we're getting your shirts ready.</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="background:#F7F4EE;border-left:3px solid #C9A227;width:100%;">
+          <tr><td style="padding:14px 16px;">
+            <span style="display:block;font-size:13px;color:#7A7268;">Order number</span>
+            <span style="display:block;font-size:22px;font-weight:700;letter-spacing:.04em;color:#1A1714;">${esc(number)}</span>
+          </td></tr>
+        </table>
+      </td></tr>
+      <tr><td style="padding:20px 28px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          ${rows}
+          <tr><td></td><td style="padding:12px 12px 4px;font-size:14px;color:#4A443D;">Subtotal</td>
+              <td align="right" style="padding:12px 0 4px;font-size:14px;color:#4A443D;">${money(subtotal)}</td></tr>
+          <tr><td></td><td style="padding:4px 12px;font-size:14px;color:#4A443D;">${pickup ? 'Local pickup' : 'Shipping'}</td>
+              <td align="right" style="padding:4px 0;font-size:14px;color:#4A443D;">${shipping ? money(shipping) : 'Free'}</td></tr>
+          <tr><td></td><td style="padding:8px 12px 0;font-size:16px;font-weight:700;color:#1A1714;">Total paid</td>
+              <td align="right" style="padding:8px 0 0;font-size:16px;font-weight:700;color:#1A1714;">${money(total)}</td></tr>
+        </table>
+      </td></tr>
+      <tr><td style="padding:28px 28px 8px;">${delivery}</td></tr>
+      <tr><td style="padding:24px 28px 32px;">
+        <p style="margin:0;font-size:14px;line-height:1.6;color:#4A443D;">Questions about your order? Reply to this email or call
+          <a href="tel:+18327999733" style="color:#C1272D;text-decoration:none;">832-799-9733</a>. Mention order <strong>${esc(number)}</strong>.</p>
+      </td></tr>
+      <tr><td style="background:#0E0D0C;padding:20px 28px;">
+        <p style="margin:0;font-size:12px;line-height:1.6;color:#A9A196;">A Retrospektual View &middot; Rosharon, Texas<br>
+          <a href="${SITE}/shop/" style="color:#E0BC4A;text-decoration:none;">Merchandise Shop</a> &nbsp; 
+          <a href="${SITE}/privacy/" style="color:#A9A196;">Privacy policy</a></p>
+        <p style="margin:8px 0 0;font-size:12px;color:#7A7268;">This receipt was sent to ${esc(email)}.</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+}
+
+async function sendMail(env, { to, subject, text, html }) {
   if (!env.RESEND_API_KEY || !env.ORDER_EMAIL_FROM) {
     console.error('Email not configured: RESEND_API_KEY or ORDER_EMAIL_FROM missing');
     return false;
@@ -90,8 +170,11 @@ async function sendMail(env, { to, subject, text }) {
     body: JSON.stringify({
       from: `A Retrospektual View <${env.ORDER_EMAIL_FROM}>`,
       to: [to],
+      // Customer replies land in your real inbox, not the send-only address.
+      reply_to: env.ORDER_EMAIL_TO || undefined,
       subject,
       text,
+      html: html || undefined,
     }),
   });
   if (!r.ok) console.error('Resend error', r.status, await r.text());
@@ -122,7 +205,7 @@ export async function onRequestPost({ request, env }) {
   let s;
   try {
     const r = await fetch(
-      `https://api.stripe.com/v1/checkout/sessions/${sessionId}?expand[]=line_items`,
+      `https://api.stripe.com/v1/checkout/sessions/${sessionId}?expand[]=line_items&expand[]=line_items.data.price.product`,
       { headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}` } }
     );
     s = await r.json();
@@ -147,8 +230,10 @@ export async function onRequestPost({ request, env }) {
       ? 'LOCAL PICKUP — do not ship'
       : `Shipping: ${money((s.shipping_cost && s.shipping_cost.amount_total) || 0)}`;
 
+  const number = orderNumber(s.payment_intent);
+
   const text = [
-    `New merch order — ${money(s.amount_total)}`,
+    `New merch order ${number} — ${money(s.amount_total)}`,
     '',
     'ITEMS',
     items || '  (none listed)',
@@ -169,9 +254,72 @@ export async function onRequestPost({ request, env }) {
 
   await sendMail(env, {
     to: env.ORDER_EMAIL_TO || env.ORDER_EMAIL_FROM,
-    subject: `Order — ${money(s.amount_total)} — ${(ship && ship.name) || cust.name || 'customer'}`,
+    subject: `Order ${number} — ${money(s.amount_total)} — ${(ship && ship.name) || cust.name || 'customer'}`,
     text,
   });
+
+  /* ------------------------------------------- customer confirmation email */
+  if (cust.email) {
+    const lineItems = (s.line_items && s.line_items.data) || [];
+    const shipCost = (s.shipping_cost && s.shipping_cost.amount_total) || 0;
+    const pickup = shipCost === 0;
+    const a = ship && ship.address;
+    const shipTo = !pickup && a
+      ? [
+          (ship && ship.name) || cust.name || '',
+          a.line1 || '',
+          a.line2 || '',
+          [a.city, a.state].filter(Boolean).join(', ') + (a.postal_code ? ' ' + a.postal_code : ''),
+        ].filter(Boolean)
+      : [];
+    const items = lineItems.map(li => {
+      const prod = li.price && typeof li.price.product === 'object' ? li.price.product : null;
+      return {
+        qty: li.quantity,
+        name: li.description,
+        amount: li.amount_total,
+        image: prod && prod.images && prod.images[0],
+      };
+    });
+    const firstName = ((ship && ship.name) || cust.name || '').split(' ')[0];
+
+    const custText = [
+      `Thanks${firstName ? ', ' + firstName : ''}. Your order is in.`,
+      '',
+      `Order number: ${number}`,
+      '',
+      ...items.map(it => `${it.qty} x ${it.name}   ${money(it.amount)}`),
+      '',
+      `Subtotal: ${money(s.amount_subtotal)}`,
+      `${pickup ? 'Local pickup' : 'Shipping'}: ${shipCost ? money(shipCost) : 'Free'}`,
+      `Total paid: ${money(s.amount_total)}`,
+      '',
+      pickup
+        ? "Local pickup in Rosharon. We'll text or email you when it's ready."
+        : ['Shipping to:', ...shipTo, '', "We'll email your tracking number as soon as it ships."].join('\n'),
+      '',
+      `Questions? Reply to this email or call 832-799-9733 and mention order ${number}.`,
+      '',
+      'A Retrospektual View',
+    ].join('\n');
+
+    await sendMail(env, {
+      to: cust.email,
+      subject: `Order ${number} confirmed — A Retrospektual View`,
+      text: custText,
+      html: confirmationHtml({
+        number,
+        firstName,
+        items,
+        subtotal: s.amount_subtotal,
+        shipping: shipCost,
+        total: s.amount_total,
+        pickup,
+        shipTo,
+        email: cust.email,
+      }),
+    });
+  }
 
   return ok();
 }

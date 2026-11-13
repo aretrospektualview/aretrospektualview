@@ -834,3 +834,31 @@ body.has-cart { padding-bottom: 5.5rem; }
 .shirt__add, .shirt__add:hover { background: var(--red); border-color: var(--red); color: #fff; padding-inline: 1.4rem; }
 .shirt__add:hover { background: var(--red-soft); border-color: var(--red-soft); }
 .shirt__size { border-color: #5a544c; }
+
+/* ---------- order confirmation page ---------- */
+.thanks { padding: clamp(2.5rem, 7vw, 5rem) var(--pad-x) var(--section-y); display: flex; justify-content: center; }
+.thanks__card {
+  width: 100%; max-width: 40rem;
+  background: var(--panel); border: 1px solid var(--rule); border-top: 4px solid var(--red);
+  padding: clamp(1.5rem, 5vw, 3rem);
+}
+.thanks__card h1 { font-size: clamp(1.75rem, 1.3rem + 2vw, 2.5rem); max-width: none; margin-bottom: .5rem; }
+.thanks__lede { color: var(--cream-dim); margin-bottom: 1.75rem; }
+.thanks__status { color: var(--cream-dim); }
+.thanks__number {
+  border-left: 3px solid var(--gold); background: var(--panel-2);
+  padding: 1rem 1.25rem; margin-bottom: 2rem;
+}
+.thanks__label { display: block; color: var(--cream-dim); font-size: .875rem; }
+.thanks__number strong { font-size: clamp(1.5rem, 1.2rem + 1.5vw, 2rem); letter-spacing: .04em; }
+.thanks__items { list-style: none; margin: 0 0 1rem; padding: 0; }
+.thanks__items li { display: flex; justify-content: space-between; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid var(--rule); }
+.thanks__amt, .thanks__totals dd { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.thanks__totals { display: grid; grid-template-columns: 1fr auto; gap: .35rem 1rem; margin: 0 0 2rem; color: var(--cream-dim); }
+.thanks__totals dd { margin: 0; text-align: right; }
+.thanks__totals .is-total { color: var(--cream); font-weight: 700; font-size: 1.125rem; padding-top: .35rem; }
+.thanks__delivery { margin-bottom: 1.75rem; }
+.thanks__delivery h2 { margin-bottom: .4rem; }
+.thanks__note, .thanks__help { color: var(--cream-dim); font-size: .9375rem; }
+.thanks__help a { color: var(--cream); }
+.thanks__actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }

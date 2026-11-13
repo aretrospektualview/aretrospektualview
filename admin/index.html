@@ -244,7 +244,7 @@
     if (o.shipped_at) left.appendChild(tag('SHIPPED', 'tag--shipped'));
     var wh = document.createElement('div');
     wh.className = 'order__when';
-    wh.textContent = when(o.created);
+    wh.textContent = (o.order_number ? o.order_number + '  ·  ' : '') + when(o.created);
     left.appendChild(wh);
 
     var tot = document.createElement('span');
