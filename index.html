@@ -134,7 +134,12 @@
 
 <main id="main">
 
-  <section class="hero" id="top">
+  <section class="hero hero--video" id="top">
+    <video class="hero__video" autoplay muted loop playsinline preload="metadata"
+      poster="/assets/img/home-hero-poster.jpg" aria-label="Studio, video shoot, and DJ footage from A Retrospektual View">
+      <source src="/assets/video/home-hero.mp4" type="video/mp4">
+    </video>
+    <div class="hero__shade" style="--poster: url('/assets/img/home-hero-poster.jpg')"></div>
     <img class="hero__mark" src="/assets/img/arv-logo.png" alt="A Retrospektual View" width="640" height="403">
     <h1 class="hero__title">Recording studio, video, photography, and live event production in Rosharon, Texas</h1>
     <p class="hero__line">Four divisions, one team, serving Pearland, Manvel, Alvin, and the greater Houston area.</p>
@@ -146,24 +151,43 @@
 
   <section class="doors" aria-label="Our divisions">
     <a class="door door--studio" href="/studio/">
+      <img class="door__bg" src="/assets/img/vocal-booth.jpg" alt="" loading="lazy" style="object-position:50% 30%">
       <span class="door__slot"><img src="/assets/img/joes-house-logo.png" alt="" width="300" height="84"></span>
       <span class="door__name">Joe's House Music Studio</span>
       <span class="door__what">Recording, mixing, and mastering</span>
     </a>
     <a class="door door--film" href="/video/">
+      <img class="door__bg" src="/assets/img/film-event.jpg" alt="" loading="lazy" style="object-position:50% 35%">
       <span class="door__slot"><img src="/assets/img/joe-filmedit-logo.png" alt="" width="300" height="138"></span>
       <span class="door__name">Joe Filmed It</span>
       <span class="door__what">Video production and photography</span>
     </a>
     <a class="door door--photo" href="/photography/">
+      <img class="door__bg" src="/assets/img/kdon-soccer-action.jpg" alt="" loading="lazy" style="object-position:50% 40%">
       <span class="door__slot"><img src="/assets/img/shot-by-kdon-logo.png" alt="" width="604" height="373"></span>
       <span class="door__name">Shot By KD0n</span>
       <span class="door__what">Sports and event photography, highlight mixtapes</span>
     </a>
     <a class="door door--dj" href="/dj/">
+      <img class="door__bg" src="/assets/img/dj-doomarz-serato-booth.jpg" alt="" loading="lazy" style="object-position:60% 30%">
       <span class="door__slot"><img src="/assets/img/dj-doomarz-logo.png" alt="" width="220" height="228"></span>
       <span class="door__name">DJ Doomarz</span>
       <span class="door__what">DJ, MC, live sound, and lighting</span>
+    </a>
+  </section>
+
+  <section class="doors doors--two" aria-label="T-shirts">
+    <a class="door door--wide door--custom" href="/custom-printing/">
+      <img class="door__bg" src="/assets/img/card-custom-printing.jpg" alt="" loading="lazy" width="1600" height="900">
+      <span class="door__name">Custom T-Shirt Printing</span>
+      <span class="door__what">Your design on shirts for teams, schools, churches, and businesses. From $22 each, no minimum.</span>
+      <span class="door__go">Get a quote</span>
+    </a>
+    <a class="door door--wide door--shop" href="/shop/">
+      <img class="door__bg" src="/assets/img/card-merch-shop.jpg" alt="" loading="lazy" width="1600" height="900">
+      <span class="door__name">Merchandise Shop</span>
+      <span class="door__what">Our original designs, ready to order. $30 a shirt, shipped or free local pickup.</span>
+      <span class="door__go">Shop the shirts</span>
     </a>
   </section>
 
@@ -186,6 +210,22 @@
         <li><strong><a href="/shop/">Merchandise Shop</a></strong><span>Original designs, $30 each</span></li>
       </ul>
     </div>
+  </section>
+
+  <section class="reviews" id="reviews">
+    <div class="reviews__text">
+      <h2>Worked with us? Leave a Google review</h2>
+      <p>Whether we recorded your song, filmed your event, shot your game, or played your party, an honest review
+        helps the next person find us. It takes about a minute.</p>
+      <div class="reviews__actions">
+        <a class="btn btn--solid" href="https://g.page/r/CXs5Us89n6SEECE/review" target="_blank" rel="noopener">Leave a Google review</a>
+        <a class="btn" href="https://g.page/r/CXs5Us89n6SEECE" target="_blank" rel="noopener">Read our reviews</a>
+      </div>
+    </div>
+    <figure class="reviews__qr">
+      <img src="/assets/img/google-review-qr.png" alt="QR code that opens the Google review form for A Retrospektual View" width="396" height="396" loading="lazy">
+      <figcaption>On a computer? Scan with your phone camera.</figcaption>
+    </figure>
   </section>
 
   <section class="cta-band">
@@ -225,6 +265,7 @@
     <p><a href="/custom-printing/">Custom t-shirt printing</a></p>
     <p><a href="/shop/">Merchandise Shop</a></p>
     <p><a href="/schools/">For school districts</a></p>
+    <p><a href="https://g.page/r/CXs5Us89n6SEECE/review" target="_blank" rel="noopener">Leave a Google review</a></p>
   </div>
   <p class="site-foot__legal">
     &copy; <span id="year">2026</span> A Retrospektual View. All rights reserved.

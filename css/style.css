@@ -686,3 +686,139 @@ body.has-cart { padding-bottom: 5.5rem; }
 }
 .page-head--video > :not(.page-head__video):not(.page-head__shade) { align-self: flex-start; }
 .page-head--video .page-head__logo { width: auto; max-width: 100%; object-fit: contain; flex: none; }
+
+/* ==========================================================================
+   Desktop richness pass: video home hero, photo doors, two-column pages
+   ========================================================================== */
+
+/* home hero with footage */
+.hero--video {
+  position: relative; overflow: hidden; isolation: isolate;
+  min-height: clamp(520px, 82vh, 820px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.hero__video {
+  position: absolute; inset: 0; z-index: -2;
+  width: 100%; height: 100%; object-fit: cover; background: var(--ink);
+}
+.hero__shade {
+  position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(14,13,12,.5) 0%, rgba(14,13,12,.82) 70%),
+    linear-gradient(to top, rgba(14,13,12,1) 0%, rgba(14,13,12,0) 30%);
+}
+.hero--video .hero__mark { filter: drop-shadow(0 6px 28px rgba(0,0,0,.75)); }
+.hero--video .hero__title, .hero--video .hero__line { text-shadow: 0 1px 16px rgba(0,0,0,.7); }
+.hero--video .hero__line { color: var(--cream); }
+.hero--video .btn:not(.btn--solid) { background: rgba(14,13,12,.55); border-color: rgba(239,233,221,.35); }
+@media (prefers-reduced-motion: reduce) {
+  .hero__video { display: none; }
+  .hero__shade {
+    background:
+      radial-gradient(ellipse at 50% 45%, rgba(14,13,12,.5) 0%, rgba(14,13,12,.82) 70%),
+      var(--poster) center / cover no-repeat;
+  }
+}
+
+/* division doors become photo cards */
+.door {
+  position: relative; overflow: hidden; isolation: isolate;
+  justify-content: flex-end;
+  min-height: clamp(300px, 34vw, 560px);
+  padding: 1.5rem 1.25rem 1.75rem;
+  background: var(--ink);
+}
+.door__bg {
+  position: absolute; inset: 0; z-index: -2;
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .5s ease, filter .3s ease;
+  filter: saturate(.9) brightness(.8);
+}
+.door::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(to top, rgba(14,13,12,.96) 0%, rgba(14,13,12,.7) 34%, rgba(14,13,12,.08) 70%);
+}
+.door:hover { background: var(--ink); }
+.door:hover .door__bg { transform: scale(1.04); filter: saturate(1) brightness(.95); }
+.door__slot { height: auto; min-height: 84px; margin-bottom: .35rem; }
+.door__slot img { filter: drop-shadow(0 2px 10px rgba(0,0,0,.8)); }
+.door__name { font-size: 1.1875rem; }
+.door__what { color: var(--cream); opacity: .82; }
+@media (prefers-reduced-motion: reduce) { .door__bg { transition: none; } .door:hover .door__bg { transform: none; } }
+@media (min-width: 1100px) { .doors { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 560px) { .door { min-height: 340px; } }
+
+/* taller footage headers on big screens */
+@media (min-width: 960px) {
+  .page-head--video { min-height: clamp(520px, 74vh, 780px); padding-bottom: clamp(2.5rem, 5vw, 4rem); }
+  .page-head--video h1 { font-size: clamp(2.6rem, 1.6rem + 2.6vw, 4rem); max-width: 20ch; }
+}
+
+/* text beside a rates panel */
+@media (min-width: 960px) { .split--aside { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); } }
+.panel {
+  background: var(--panel); border: 1px solid var(--rule); border-top: 3px solid var(--gold);
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+}
+.rates--panel { margin-top: 0; }
+.rates--panel .rate-list { max-width: none; }
+.rates--panel .rate-list dd { font-size: 1.125rem; }
+@media (min-width: 960px) { .panel { position: sticky; top: 1.5rem; } }
+
+.gallery--square .gallery__item img { aspect-ratio: 1 / 1; object-position: center 30%; }
+
+/* wider, larger reading text on desktop */
+@media (min-width: 1100px) {
+  .division .lede { font-size: 1.4rem; line-height: 1.45; }
+  .division__body > p:not(.lede):not(.note) { font-size: 1.0625rem; }
+}
+
+/* school band with event photo on wide screens */
+@media (min-width: 900px) {
+  .cta-band {
+    background:
+      linear-gradient(to right, var(--panel) 0%, var(--panel) 42%, rgba(23,21,19,.55) 70%, rgba(23,21,19,.25) 100%),
+      url("/assets/img/dj-booth.jpg") right 35% / 62% auto no-repeat, var(--panel);
+    padding-block: clamp(4rem, 9vw, 7rem);
+  }
+  .cta-band p { max-width: 46ch; color: var(--cream); }
+}
+
+/* t-shirt cards on the homepage */
+.doors--two { grid-template-columns: 1fr; border-top: 0; }
+@media (min-width: 760px) { .doors--two { grid-template-columns: 1fr 1fr; } }
+.door--wide { min-height: clamp(340px, 30vw, 500px); padding-bottom: 2rem; }
+.door--wide .door__bg { filter: none; object-position: center 20%; }
+.door--wide::after {
+  background: linear-gradient(to top, rgba(14,13,12,.97) 0%, rgba(14,13,12,.82) 30%, rgba(14,13,12,0) 62%);
+}
+.door--wide:hover .door__bg { filter: none; }
+.door--wide .door__name { font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem); letter-spacing: -.015em; }
+.door--wide .door__what { max-width: 38ch; }
+.door__go {
+  margin-top: .6rem; padding: .6rem 1.25rem;
+  background: var(--red); color: #fff; font-weight: 600; font-size: .9375rem; border-radius: 2px;
+  transition: background-color .15s;
+}
+.door--wide:hover .door__go { background: var(--red-soft); }
+.door--custom:hover { border-top-color: var(--gold); }
+.door--shop:hover { border-top-color: var(--red); }
+.door--wide { min-height: clamp(470px, 38vw, 640px); }
+.door--wide .door__bg { height: 64%; bottom: auto; object-position: center 12%; }
+.door--wide::after {
+  background: linear-gradient(to top, rgba(14,13,12,1) 0%, rgba(14,13,12,1) 36%, rgba(14,13,12,0) 56%);
+}
+
+/* Google review ask */
+.reviews {
+  padding: var(--section-y) var(--pad-x);
+  border-bottom: 1px solid var(--rule);
+  display: grid; gap: clamp(1.5rem, 5vw, 4rem); align-items: center;
+}
+@media (min-width: 860px) { .reviews { grid-template-columns: minmax(0, 1fr) auto; } }
+.reviews__text p { color: var(--cream-dim); max-width: 52ch; margin-bottom: 1.5rem; }
+.reviews__actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.reviews__qr { margin: 0; text-align: center; }
+.reviews__qr img { width: 176px; height: 176px; border: 6px solid var(--cream); border-radius: 2px; margin: 0 auto .6rem; }
+.reviews__qr figcaption { color: var(--cream-dim); font-size: .875rem; max-width: 22ch; margin: 0 auto; }
+@media (max-width: 859px) { .reviews__qr { display: none; } }
